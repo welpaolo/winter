@@ -20,29 +20,29 @@ import de.uni_mannheim.informatik.dws.winter.model.DataSet;
 import de.uni_mannheim.informatik.dws.winter.model.Matchable;
 
 /**
- * 
  * Super class for CSV readers.
- * 
- * @author Oliver Lehmberg (oli@dwslab.de)
  *
+ * @author Oliver Lehmberg (oli@dwslab.de)
  */
 public abstract class CSVMatchableReader<RecordType extends Matchable, SchemaElementType extends Matchable> {
 
-	public void loadFromCSV(File file, DataSet<RecordType, SchemaElementType> dataset) throws IOException {
-		
-		CSVReader reader = new CSVReader(new FileReader(file));
-		
-		String[] values = null;
-		int rowNumber = 0;
-		
-		while((values = reader.readNext()) != null) {
-			readLine(file, rowNumber++, values, dataset);
-		}
-		
-		reader.close();
-		
-	}
-	
-	protected abstract void readLine(File file, int rowNumber, String[] values, DataSet<RecordType, SchemaElementType> dataset);
-	
+    public void loadFromCSV(File file, DataSet<RecordType, SchemaElementType> dataset) throws IOException {
+
+        CSVReader reader = new CSVReader(new FileReader(file));
+
+        String[] values = null;
+        int rowNumber = 0;
+
+//		System.out.println("Number of lines: "+reader.readAll().size());
+
+        while ((values = reader.readNext()) != null) {
+            readLine(file, rowNumber++, values, dataset);
+        }
+
+        reader.close();
+
+    }
+
+    protected abstract void readLine(File file, int rowNumber, String[] values, DataSet<RecordType, SchemaElementType> dataset);
+
 }

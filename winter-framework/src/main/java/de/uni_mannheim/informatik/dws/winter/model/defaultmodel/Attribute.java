@@ -13,6 +13,7 @@
 package de.uni_mannheim.informatik.dws.winter.model.defaultmodel;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import de.uni_mannheim.informatik.dws.winter.model.Matchable;
 
@@ -66,4 +67,19 @@ public class Attribute implements Matchable, Serializable {
 	public String toString() {
 		return getIdentifier();
 	}
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Attribute attribute = (Attribute) o;
+        return Objects.equals(id, attribute.id);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id);
+    }
 }

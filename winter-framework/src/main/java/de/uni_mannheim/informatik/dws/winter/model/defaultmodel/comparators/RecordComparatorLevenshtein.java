@@ -22,33 +22,34 @@ import de.uni_mannheim.informatik.dws.winter.similarity.string.LevenshteinSimila
  * {@link Comparator} for {@link Record}s based on the
  * values, and their {@link LevenshteinSimilarity}
  * similarity.
- * 
+ *
  * @author Alexander Brinkmann (albrinkm@mail.uni-mannheim.de)
- * 
  */
 public class RecordComparatorLevenshtein extends StringComparator {
 
-	public RecordComparatorLevenshtein(Attribute attributeRecord1, Attribute attributeRecord2) {
-		super(attributeRecord1, attributeRecord2);
-	}
+    public RecordComparatorLevenshtein(Attribute attributeRecord1, Attribute attributeRecord2) {
+        super(attributeRecord1, attributeRecord2);
+    }
 
-	private static final long serialVersionUID = 1L;
-	private LevenshteinSimilarity sim = new LevenshteinSimilarity();
+    private static final long serialVersionUID = 1L;
+    private LevenshteinSimilarity sim = new LevenshteinSimilarity();
 
-	@Override
-	public double compare(Record record1, Record record2, Correspondence<Attribute, Matchable> schemaCorrespondence) {
-		
-		String s1 = record1.getValue(this.getAttributeRecord1());
-		String s2 = record2.getValue(this.getAttributeRecord2());
-		
-		s1 = preprocess(s1);
-		s2 = preprocess(s2);
-		
-		// calculate similarity
-		double similarity = sim.calculate(s1, s2);
+    @Override
+    public double compare(Record record1, Record record2, Correspondence<Attribute, Matchable> schemaCorrespondence) {
 
-		return similarity;
-	}
+        String s1 = record1.getValue(this.getAttributeRecord1());
+        String s2 = record2.getValue(this.getAttributeRecord2());
+
+//        System.out.println("s1: " + s1);
+//        System.out.println("s1: " + s2);
+        s1 = preprocess(s1);
+        s2 = preprocess(s2);
+
+        // calculate similarity
+        double similarity = sim.calculate(s1, s2);
+
+        return similarity;
+    }
 
 
 }

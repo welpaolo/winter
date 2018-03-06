@@ -12,126 +12,148 @@
 package de.uni_mannheim.informatik.dws.winter.model.defaultmodel;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import de.uni_mannheim.informatik.dws.winter.model.DataSet;
 import de.uni_mannheim.informatik.dws.winter.model.io.CSVMatchableReader;
 
 /**
- * 
  * Reader for records from CSV files. The values in the first row are
  * interpreted as attribute names.
- * 
- * @author Oliver Lehmberg (oli@dwslab.de)
  *
+ * @author Oliver Lehmberg (oli@dwslab.de)
  */
 public class CSVRecordReader extends CSVMatchableReader<Record, Attribute> {
 
-	private int idIndex = -1;
-	private Map<String, Attribute> attributeMapping;
+    private int idIndex = -1;
+    private Map<String, Attribute> attributeMapping;
+    private List<Attribute> attributesList = new ArrayList<>();
 
-	/**
-	 * 
-	 * @param idColumnIndex
-	 *            The index of the column that contains the ID attribute.
-	 *            Specify -1 if the file does not contain a unique ID attribute.
-	 */
-	public CSVRecordReader(int idColumnIndex) {
-		this.idIndex = idColumnIndex;
-	}
+    /**
+     * @param idColumnIndex The index of the column that contains the ID attribute.
+     *                      Specify -1 if the file does not contain a unique ID attribute.
+     */
+    public CSVRecordReader(int idColumnIndex) {
+        this.idIndex = idColumnIndex;
+        this.attributesList = new ArrayList<>();
+    }
 
-	/**
-	 * 
-	 * @param idColumnIndex
-	 *            The index of the column that contains the ID attribute.
-	 *            Specify -1 if the file does not contain a unique ID attribute.
-	 * @param attributeMapping
-	 *            The position of a column and the corresponding attribute
-	 */
-	public CSVRecordReader(int idColumnIndex, Map<String, Attribute> attributeMapping) {
-		this.idIndex = idColumnIndex;
-		this.attributeMapping = attributeMapping;
-	}
+    /**
+     * @param idColumnIndex    The index of the column that contains the ID attribute.
+     *                         Specify -1 if the file does not contain a unique ID attribute.
+     * @param attributeMapping The position of a column and the corresponding attribute
+     */
+    public CSVRecordReader(int idColumnIndex, Map<String, Attribute> attributeMapping) {
+        this.idIndex = idColumnIndex;
+        this.attributeMapping = attributeMapping;
+        this.attributesList = new ArrayList<>();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.uni_mannheim.informatik.wdi.model.io.CSVMatchableReader#readLine(java.
-	 * lang.String[], de.uni_mannheim.informatik.wdi.model.DataSet)
-	 */
-	@Override
-	protected void readLine(File file, int rowNumber, String[] values, DataSet<Record, Attribute> dataset) {
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * de.uni_mannheim.informatik.wdi.model.io.CSVMatchableReader#readLine(java.
+     * lang.String[], de.uni_mannheim.informatik.wdi.model.DataSet)
+     */
+    @Override
+    protected void readLine(File file, int rowNumber, String[] values, DataSet<Record, Attribute> dataset) {
 
-		Set<String> ids = new HashSet<>();
+        Set<String> ids = new HashSet<>();
 
-		Attribute[] attributes = null;
-		
-		if (rowNumber == 0) {
+        Attribute[] attributes = null;
 
-			attributes = new Attribute[values.length];
-			
-			for (int i = 0; i < values.length; i++) {
-				String v = values[i];
-				String attributeId = String.format("%s_Col%d", file.getName(), i);
-				Attribute a = null;
-				if (this.attributeMapping == null) {
-					a = new Attribute(attributeId, file.getAbsolutePath());
-				} else {
-					a = this.attributeMapping.get(v);
-					if(a == null){
-						a = new Attribute(attributeId, file.getAbsolutePath());
-					}
-				}
+        if (rowNumber == 0) {
 
-				attributes[i] = a;
-				a.setName(v);
-				dataset.addAttribute(a);
-			}
+            System.out.println("FIRST LINE: ");
 
-		} else {
+            Set<String> labels = new HashSet<>();
 
-			String id = String.format("%s_%d", file.getName(), rowNumber);
 
-			if (idIndex >= 0 && values[idIndex] != null) {
-				id = values[idIndex];
+            for (String value : values) {
+                System.out.print(value + "\t");
+                labels.add(value);
+            }
 
-				if (ids.contains(id)) {
-					String replacementId = String.format("%s_%d", file.getName(), rowNumber);
-					System.err.println(String.format("Id '%s' (line %d) already exists, using '%s' instead!", id,
-							rowNumber, replacementId));
-					id = replacementId;
-				}
+            attributes = new Attribute[values.length];
 
-				ids.add(id);
-			}
+            for (int i = 0; i < values.length; i++) {
+                String v = values[i];
+                String attributeId = String.format("%s_Col%d", file.getName(), i);
+                if (labels.size() == values.length) {
+                    attributeId = values[i];
+                } else {
+                    attributeId = String.format("%s_Col%d", file.getName(), i);
+                }
 
-			Record r = new Record(id, file.getAbsolutePath());
+                Attribute a = null;
+                if (this.attributeMapping == null) {
+                    a = new Attribute(attributeId, file.getAbsolutePath());
+                } else {
+                    a = this.attributeMapping.get(v);
+                    if (a == null) {
+                        a = new Attribute(attributeId, file.getAbsolutePath());
+                    }
+                }
 
-			for (int i = 0; i < values.length; i++) {
-				Attribute a;
-				String v = values[i];
-				
-				if(attributes!=null && attributes.length>i) {
-					a = attributes[i];
-				} else {
-					String attributeId = String.format("%s_Col%d", file.getName(), i);
-					a = dataset.getAttribute(attributeId);
-				}
+                attributes[i] = a;
 
-				if (v.isEmpty()) {
-					v = null;
-				}
 
-				r.setValue(a, v);
-			}
+                a.setName(v);
+                attributesList.add(i, a);
+                dataset.addAttribute(a);
+            }
 
-			dataset.add(r);
+        } else {
 
-		}
 
-	}
+            String id = String.format("%s_%d", file.getName(), rowNumber);
+//            String id = attributes[i].getIdentifier();
+
+            if (idIndex >= 0 && values[idIndex] != null) {
+                id = values[idIndex];
+
+                if (ids.contains(id)) {
+                    String replacementId = String.format("%s_%d", file.getName(), rowNumber);
+                    System.err.println(String.format("Id '%s' (line %d) already exists, using '%s' instead!", id,
+                            rowNumber, replacementId));
+                    id = replacementId;
+                }
+
+                ids.add(id);
+            }
+
+            Record r = new Record(id, file.getAbsolutePath());
+
+            for (int i = 0; i < values.length; i++) {
+                Attribute a;
+                String v = values[i];
+
+//                if (attributes != null && attributes.length > i) {
+//                    a = attributes[i];
+//                } else {
+//                    String attributeId = String.format("%s_Col%d", file.getName(), i);
+//                    a = dataset.getAttribute(attributeId);
+//                }
+
+                if (attributesList != null && attributesList.size() > i) {
+                    a = attributesList.get(i);
+                } else {
+                    String attributeId = String.format("%s_Col%d", file.getName(), i);
+                    a = dataset.getAttribute(attributeId);
+                }
+
+                if (v.isEmpty()) {
+                    v = null;
+                }
+
+                r.setValue(a, v);
+            }
+
+            dataset.add(r);
+
+        }
+
+    }
 
 }

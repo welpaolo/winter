@@ -20,57 +20,64 @@ import de.uni_mannheim.informatik.dws.winter.model.AbstractRecord;
 /**
  * A default model that represents an {@link AbstractRecord} as a set of key/value pairs.
  * Supports lists as values.
- * 
+ *
  * @author Oliver Lehmberg (oli@dwslab.de)
- * 
  */
 public class Record extends AbstractRecord<Attribute> {
 
-	private static final long serialVersionUID = 1L;
-	private Map<Attribute, String> values;
-	private Map<Attribute, List<String>> lists;
+    private static final long serialVersionUID = 1L;
+    private Map<Attribute, String> values;
+    private Map<Attribute, List<String>> lists;
 
-	public Record(String identifier) {
-		super(identifier, "");
-		values = new HashMap<>();
-		lists = new HashMap<>();
-	}
-	
-	public Record(String identifier, String provenance) {
-		super(identifier, provenance);
-		values = new HashMap<>();
-		lists = new HashMap<>();
-	}
+    public Record(String identifier) {
+        super(identifier, "");
+        values = new HashMap<>();
+        lists = new HashMap<>();
+    }
 
-	public String getValue(Attribute attribute) {
-		return values.get(attribute);
-	}
+    public Record(String identifier, String provenance) {
+        super(identifier, provenance);
+        values = new HashMap<>();
+        lists = new HashMap<>();
+    }
 
-	public List<String> getList(Attribute attribute) {
-		return lists.get(attribute);
-	}
+    public String getValue(Attribute attribute) {
+        return values.get(attribute);
+    }
 
-	public void setValue(Attribute attribute, String value) {
-		values.put(attribute, value);
-	}
+    public List<String> getList(Attribute attribute) {
+        return lists.get(attribute);
+    }
 
-	public void setList(Attribute attribute, List<String> list) {
-		lists.put(attribute, list);
-	}
+    public void setValue(Attribute attribute, String value) {
+        values.put(attribute, value);
+    }
 
-	@Override
-	public boolean hasValue(Attribute attribute) {
-		return (values.containsKey(attribute) && values.get(attribute)!=null)
-				|| (lists.containsKey(attribute) && lists.get(attribute)!=null);
-	}
+    public void setList(Attribute attribute, List<String> list) {
+        lists.put(attribute, list);
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return values.toString();
-	}
-	
-	
+
+    public Map<Attribute, String> getValues() {
+        return values;
+    }
+
+    @Override
+    public boolean hasValue(Attribute attribute) {
+        return (values.containsKey(attribute) && values.get(attribute) != null)
+                || (lists.containsKey(attribute) && lists.get(attribute) != null);
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return values.toString();
+    }
+
+
+
+
+
 }
