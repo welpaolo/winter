@@ -11,13 +11,12 @@ import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.CSVRecordReader;
 import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.Record;
 import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.comparators.RecordComparatorLevenshtein;
 import de.uni_mannheim.informatik.dws.winter.processing.Processable;
-
-import it.unimore.deduplication.model.Organization;
+import it.unimore.deduplication.model.Project;
 import org.jgrapht.Graph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleGraph;
+import org.jgrapht.graph.Pseudograph;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,145 +24,91 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-
-public class OrganizationDeduplication {
-
-
+public class ProjectDeduplication {
     public static void main(String arg[]) {
-        System.out.println("Start!");
 
-        // DATASETS
+
         DataSet<Record, Attribute> openaire = new HashedDataSet<>();
-        DataSet<Record, Attribute> cercauniversita = new HashedDataSet<>();
         DataSet<Record, Attribute> arianna = new HashedDataSet<>();
-        DataSet<Record, Attribute> questio = new HashedDataSet<>();
-        DataSet<Record, Attribute> bvd = new HashedDataSet<>();
-        DataSet<Record, Attribute> cnr = new HashedDataSet<>();
+
+        DataSet<Record, Attribute> scanr = new HashedDataSet<>();
 
         DataSet<Record, Attribute> all = new HashedDataSet<>();
 
 
+        String basePath = arg
+                [0];
 
 
-        File cercaUniversitaFile = new File("/Users/paolosottovia/Downloads/researchAlpsCsvs/organizations_CercaUniversita.csv");
+        ///Users/paolosottovia/Downloads/extracted_data_09_03_2018/
 
-        File openaireFile = new File("/Users/paolosottovia/Downloads/researchAlpsCsvs/organizations_OpenAire.csv");
+        File ariannaFile = new File(basePath + "projects_Arianna - Anagrafe Nazionale delle Ricerche.csv");
+
+        File openaireFile = new File(basePath + "projects_OpenAire.csv");
 
 
-        File questioFile = new File("/Users/paolosottovia/Downloads/researchAlpsCsvs/organizations_Questio.csv");
-
-        File ariannaFile = new File("/Users/paolosottovia/Downloads/researchAlpsCsvs/organizations_Arianna - Anagrafe Nazionale delle Ricerche.csv");
-
-        File dvbFile = new File("/Users/paolosottovia/Downloads/researchAlpsCsvs/organizations_Bureau van Dijk.csv");
-
-        File cnrFile = new File("/Users/paolosottovia/Downloads/researchAlpsCsvs/organizations_Consiglio Nazionale delle Ricerche (CNR).csv");
+        File scanrFile = new File(basePath + "projects_ScanR.csv");
 
         //read data from csv Files
         try {
-            new CSVRecordReader(-1).loadFromCSV(
-                    cercaUniversitaFile,
-                    cercauniversita);
+
             new CSVRecordReader(-1).loadFromCSV(
                     openaireFile, openaire);
 
             new CSVRecordReader(-1).loadFromCSV(
-                    questioFile, questio);
+                    scanrFile, scanr);
 
             new CSVRecordReader(-1).loadFromCSV(
                     ariannaFile, arianna);
 
-            new CSVRecordReader(-1).loadFromCSV(
-                    dvbFile, bvd);
-
-            new CSVRecordReader(-1).loadFromCSV(
-                    cnrFile, cnr);
 
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+
             e.printStackTrace();
         }
 
         System.out.println("Number of items in Openaire: " + openaire.size());
-        System.out.println("Number of items in cerca universita: " + cercauniversita.size());
-        System.out.println("Number of items in questio: " + questio.size());
+        System.out.println("Number of items in scan r: " + scanr.size());
         System.out.println("Number of items in arianna: " + arianna.size());
-        System.out.println("Number of items in bvd: " + bvd.size());
-        System.out.println("Number of items in cnr: " + bvd.size());
+
 
         List<DataSet<Record, Attribute>> allDatasets = new ArrayList<>();
 
         allDatasets.add(openaire);
-        allDatasets.add(cercauniversita);
-        allDatasets.add(questio);
+
         allDatasets.add(arianna);
-        allDatasets.add(bvd);
-        allDatasets.add(cnr);
 
-//        File openAireFile = new File("/Users/paolosottovia/Downloads/researchAlpsCsvs/organizations_CercaUniversita_copy.csv");
-
-
-        Attribute labelOpenAire = new Attribute("label");
-        Attribute labelCercaUniversita = new Attribute("label");
+        //just for quick debug
+//        allDatasets.add(scanr);
 
         LinearCombinationMatchingRule<Record, Attribute> matchingRule = new LinearCombinationMatchingRule<>(0.75);
         // add comparators
 
 
-        Record r = openaire.getRandomRecord();
-
-        boolean contains = r.getValues().containsKey(labelOpenAire);
-        System.out.println("Contains value: " + contains);
-
-        System.out.println("Values: " + r.getValues().keySet().toString());
-
-
-        System.out.println("VALUE: " + r.getValue(labelOpenAire));
-
-        System.out.println(r.toString());
-
-        System.out.println("Indentifier: " + r.getIdentifier());
-        System.out.println("provenance: " + r.getProvenance());
-
-        DataSet<Attribute, Attribute> attributes = openaire.getSchema();
-        Attribute a = attributes.getRandomRecord();
-        System.out.println(a.toString());
-
-        StandardRecordBlocker<Record, Attribute> blocker = new StandardRecordBlocker<>(new OrganizationBlockingKey());
+        StandardRecordBlocker<Record, Attribute> blocker = new StandardRecordBlocker<>(new ProjectBlockingKey());
 
         Graph<String, DefaultEdge> g
-                = new SimpleGraph<>(DefaultEdge.class);
+                = new Pseudograph<>(DefaultEdge.class);
+
 
 
         try {
 
             // RecordComparatorLevenshtein lab = new
             // RecordComparatorLevenshtein(Organization.LABEL, Organization.LABEL);
-            RecordComparatorLevenshtein lab = new RecordComparatorLevenshtein(labelOpenAire, labelCercaUniversita);
-            lab.setLowerCase(true);
-            matchingRule.addComparator(lab, 0.6d);
+            RecordComparatorLevenshtein label = new RecordComparatorLevenshtein(Project.LABEL, Project.LABEL);
+            label.setLowerCase(true);
+            matchingRule.addComparator(label, 1.0d);
             //
-
-
-            RecordComparatorLevenshtein city = new RecordComparatorLevenshtein(Organization.CITY, Organization.CITY);
-            city.setLowerCase(true);
-//           matchingRule.addComparator(city, 0.2d);
-
-
-            RecordComparatorLevenshtein link = new RecordComparatorLevenshtein(Organization.LINK, Organization.LINK);
-            link.setLowerCase(true);
-//            matchingRule.addComparator(link, 0.2d);
-//			RecordComparatorLevenshtein url = new RecordComparatorLevenshtein(Organization.LINK, Organization.LINK);
-//			matchingRule.addComparator(url, 0.3d);
-
 
             // Initialize Matching Engine
             Collection<Correspondence<Record, Attribute>> allCorrespondances = new ArrayList<>();
 
 
             Attribute LABEL = new Attribute("label");
-            Attribute ADDRESS = new Attribute("address");
-            Attribute CITY = new Attribute("city");
-            Attribute LINKS = new Attribute("links");
+            Attribute ACRONYM = new Attribute("acronym");
+            Attribute YEAR = new Attribute("year");
+            Attribute ORGS = new Attribute("orgs");
 
             for (int i = 0; i < allDatasets.size(); i++) {
                 for (int j = i; j < allDatasets.size(); j++) {
@@ -179,8 +124,6 @@ public class OrganizationDeduplication {
                     System.out.println("Dataset2 size: " + dataSet2.size());
 
                     MatchingEngine<Record, Attribute> engine = new MatchingEngine<>();
-//                    Processable<Correspondence<Record, Attribute>> correspondences = engine.runIdentityResolution(openaire,
-//                            bvd, null, matchingRule, blocker);
 
                     Processable<Correspondence<Record, Attribute>> correspondences = engine.runIdentityResolution(dataSet1,
                             dataSet2, null, matchingRule, blocker);
@@ -203,9 +146,9 @@ public class OrganizationDeduplication {
                         System.out.println("R2: " + record2.toString());
                         System.out.println("score: " + sim);
 
-                        System.out.println("LABEL\tADDRESS\tCITY\tLINKS");
-                        System.out.println(record1.getValue(LABEL) + "\t" + record1.getValue(ADDRESS) + "\t" + record1.getValue(CITY) + "\t" + record1.getValue(LINKS));
-                        System.out.println(record2.getValue(LABEL) + "\t" + record2.getValue(ADDRESS) + "\t" + record2.getValue(CITY) + "\t" + record2.getValue(LINKS));
+                        System.out.println("LABEL\tACRONYM\tYEAR\tORGS");
+                        System.out.println(record1.getValue(LABEL) + "\t" + record1.getValue(ACRONYM) + "\t" + record1.getValue(YEAR) + "\t" + record1.getValue(ORGS));
+                        System.out.println(record2.getValue(LABEL) + "\t" + record2.getValue(ACRONYM) + "\t" + record2.getValue(YEAR) + "\t" + record2.getValue(ORGS));
 
                     }
 
@@ -218,10 +161,17 @@ public class OrganizationDeduplication {
 
             System.out.println("\n\n\n NUMBER of ALL correspondences: " + allCorrespondances.size());
 
-
-            Map<String, Set<Record>> ids = new HashMap<>();
-
-
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
             Set<Set<String>> connectedComponents = new HashSet<>();
 
             Map<String, Record> idRecords = new HashMap<>();
@@ -231,6 +181,9 @@ public class OrganizationDeduplication {
             //Nodes are the entities
             //Edges are the correspondences
             Attribute attributeId = new Attribute("id");
+
+            System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
             for (Correspondence<Record, Attribute> corr : allCorrespondances) {
 
                 Record r1 = corr.getFirstRecord();
@@ -241,7 +194,15 @@ public class OrganizationDeduplication {
 
                 g.addVertex(id1);
                 g.addVertex(id2);
-                g.addEdge(id1, id2);
+
+                System.out.println("Edge: " + id1 + "\t" + id2);
+
+                if (g.containsEdge(id1, id2)) {
+                    System.err.println("Duplicate!!!");
+
+                } else {
+                    g.addEdge(id1, id2);
+                }
 
 
                 allIds.add(id1);
@@ -290,21 +251,19 @@ public class OrganizationDeduplication {
 
                 for (String id : set) {
                     Record record = idRecords.get(id);
-                    System.out.println(record.getValue(LABEL) + "\t" + record.getValue(ADDRESS) + "\t" + record.getValue(CITY) + "\t" + record.getValue(LINKS));
-
+                    System.out.println("LABEL\tACRONYM\tYEAR\tORGS");
+                    System.out.println(record.getValue(LABEL) + "\t" + record.getValue(ACRONYM) + "\t" + record.getValue(YEAR) + "\t" + record.getValue(ORGS));
                 }
 
 
             }
-            printCorrespondence("/Users/paolosottovia/Downloads/researchAlpsCsvs/correspondence.tsv", connectedComponentsCleaned);
+            printCorrespondence("correspondenceProjects.tsv", connectedComponentsCleaned);
 
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-
     }
 
 
@@ -340,3 +299,5 @@ public class OrganizationDeduplication {
         }
     }
 }
+
+

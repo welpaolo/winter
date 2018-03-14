@@ -1,4 +1,4 @@
-package it.unimore.deduplication;
+package it.unimore.deduplication.model;
 
 import java.io.Serializable;
 

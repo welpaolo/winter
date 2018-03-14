@@ -8,6 +8,7 @@ import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.Attribute;
 import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.Record;
 import de.uni_mannheim.informatik.dws.winter.processing.DataIterator;
 import de.uni_mannheim.informatik.dws.winter.processing.Processable;
+import it.unimore.deduplication.model.Organization;
 
 public class OrganizationBlockingKey extends RecordBlockingKeyGenerator<Record, Attribute> {
 
